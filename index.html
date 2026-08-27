@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人工作紀錄</title>
+<style>
+  :root{
+    --paper:#F6F4EE; --paper-line:#E4E0D4; --ink:#1F3B36; --ink-soft:#5B6B63;
+    --amber:#B8790A; --amber-bg:#FBEFD8; --crimson:#A5271E; --crimson-bg:#F8E3DF;
+    --sage:#5C7A5E; --sage-bg:#E7EEE3; --hold:#8A6D3B; --hold-bg:#F1E6D3;
+    --card:#FFFEFA; --shadow:0 1px 2px rgba(31,59,54,0.08), 0 4px 12px rgba(31,59,54,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:"Iowan Old Style","Georgia","Noto Serif TC",serif;
+    background: linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px, var(--paper);
+    color:var(--ink); padding:20px 14px 80px; min-height:100vh;
+  }
+  h1{ font-size:1.4rem; letter-spacing:0.02em; margin:0 0 2px; font-weight:700; }
+  .subtitle{ font-size:0.78rem; color:var(--ink-soft); margin-bottom:14px; font-family:ui-monospace,"SF Mono",Menlo,monospace; }
+  .tabs{ display:flex; gap:0; margin-bottom:14px; border-bottom:1px solid var(--paper-line); }
+  .tab-btn{ background:none; border:none; padding:8px 4px; margin-right:20px; font-family:inherit; font-size:0.92rem; font-weight:700; color:var(--ink-soft); cursor:pointer; border-bottom:2px solid transparent; }
+  .tab-btn.active{ color:var(--ink); border-bottom-color:var(--ink); }
+  .toolbar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+  select, button, input, textarea{ font-family:inherit; font-size:0.85rem; }
+  .btn{ background:var(--ink); color:var(--paper); border:none; border-radius:3px; padding:8px 14px; cursor:pointer; font-weight:600; letter-spacing:0.02em; }
+  .btn:active{ opacity:0.8; }
+  .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink-soft); }
+  .btn.small{ padding:3px 8px; font-size:0.68rem; border-radius:3px; }
+  .btn.link{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; padding:4px 0; font-size:0.74rem; cursor:pointer; }
+  select{ border:1px solid var(--ink-soft); border-radius:3px; padding:7px 8px; background:var(--card); color:var(--ink); }
+  .card{ background:var(--card); border:1px solid var(--paper-line); border-radius:5px; box-shadow:var(--shadow); padding:9px 10px 8px; margin-bottom:7px; border-left:3px solid var(--ink-soft); }
+  .card.status-overdue{ border-left-color:var(--crimson); }
+  .card.status-today{ border-left-color:var(--amber); }
+  .card.status-hold{ border-left-color:var(--hold); opacity:0.85; }
+  .card.status-closed{ border-left-color:var(--sage); opacity:0.75; }
+  .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+  .title-wrap{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .card-title{ font-size:0.9rem; font-weight:700; line-height:1.25; }
+  .card.status-closed .card-title{ text-decoration:line-through; }
+  .prio-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.6rem; font-weight:700; padding:2px 6px; border-radius:3px; flex-shrink:0; border:1px solid var(--ink); }
+  .prio-high{ background:var(--ink); color:var(--paper); }
+  .prio-mid{ background:var(--paper); color:var(--ink); }
+  .prio-low{ background:transparent; color:var(--ink-soft); border-color:var(--paper-line); }
+  .tag-row{ display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 5px; font-family:ui-monospace,"SF Mono",Menlo,monospace; }
+  .tag{ font-size:0.62rem; padding:1px 6px; border-radius:99px; background:var(--paper); border:1px solid var(--paper-line); color:var(--ink-soft); }
+  .tag.cat{ border-color:var(--ink-soft); color:var(--ink); }
+  .due-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.64rem; font-weight:700; padding:2px 6px; border-radius:4px; white-space:nowrap; }
+  .due-overdue{ background:var(--crimson-bg); color:var(--crimson); }
+  .due-today{ background:var(--amber-bg); color:var(--amber); }
+  .due-future{ background:var(--paper); color:var(--ink-soft); border:1px solid var(--paper-line);}
+  .due-none{ background:var(--paper); color:var(--ink-soft); }
+  .status-pill{ font-size:0.6rem; padding:2px 6px; border-radius:4px; font-weight:700; font-family:ui-monospace,monospace; }
+  .pill-progress{ background:var(--sage-bg); color:var(--sage); }
+  .pill-hold{ background:var(--hold-bg); color:var(--hold); }
+  .pill-closed{ background:#EAEAEA; color:#777; }
+  .log-list{ margin:5px 0 2px; padding-left:0; list-style:none; border-top:1px dashed var(--paper-line); padding-top:5px; }
+  .log-item{ font-size:0.76rem; margin-bottom:3px; display:flex; gap:6px; line-height:1.3; }
+  .log-date{ font-family:ui-monospace,"SF Mono",Menlo,monospace; color:var(--ink-soft); flex-shrink:0; font-size:0.68rem; }
+  .row{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  input[type=text], input[type=date], input[type=email], input[type=password], textarea, select.field{
+    border:1px solid var(--paper-line); border-radius:4px; padding:7px 9px; background:var(--paper); color:var(--ink); width:100%;
+  }
+  textarea{ resize:vertical; min-height:30px; padding:5px 7px; font-size:0.78rem; }
+  .progress-input-row{ display:flex; gap:5px; margin-top:6px; }
+  .progress-input-row textarea{ flex:1; }
+  .empty{ text-align:center; color:var(--ink-soft); padding:40px 10px; font-size:0.85rem; border:1px dashed var(--paper-line); border-radius:6px; }
+  .modal-bg{ position:fixed; inset:0; background:rgba(31,59,54,0.35); display:flex; align-items:flex-end; justify-content:center; z-index:50; }
+  .modal{ background:var(--card); width:100%; max-width:520px; border-radius:10px 10px 0 0; padding:18px 16px 22px; max-height:88vh; overflow-y:auto; }
+  .modal h2{ font-size:1.05rem; margin:0 0 12px; }
+  .field-label{ font-size:0.72rem; color:var(--ink-soft); font-family:ui-monospace,monospace; margin:10px 0 4px; display:block; }
+  .cat-manage{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .cat-chip{ display:flex; align-items:center; gap:5px; background:var(--paper); border:1px solid var(--paper-line); border-radius:99px; padding:3px 4px 3px 10px; font-size:0.75rem; }
+  .cat-chip button{ background:none; border:none; color:var(--crimson); cursor:pointer; font-size:0.9rem; line-height:1; padding:2px 5px; }
+  .fab{ position:fixed; right:18px; bottom:22px; width:52px; height:52px; border-radius:50%; background:var(--ink); color:var(--paper); font-size:1.6rem; border:none; box-shadow:var(--shadow); cursor:pointer; z-index:30; }
+  .type-radio, .prio-radio{ display:flex; gap:10px; }
+  .type-radio label, .prio-radio label{ font-size:0.85rem; display:flex; align-items:center; gap:4px; }
+  #loginScreen{ max-width:340px; margin:80px auto 0; text-align:center; }
+  #loginScreen h1{ margin-bottom:20px; }
+  #loginScreen input{ margin-bottom:10px; }
+  #loginError{ color:var(--crimson); font-size:0.8rem; margin-top:8px; min-height:1em; }
+  #appRoot{ display:none; }
+  .topbar-user{ font-size:0.72rem; color:var(--ink-soft); font-family:ui-monospace,monospace; display:flex; align-items:center; gap:8px; margin-left:auto; }
+  .syncdot{ width:7px; height:7px; border-radius:50%; background:var(--sage); display:inline-block; }
+  .syncdot.off{ background:var(--crimson); }
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <h1>個人工作紀錄</h1>
+  <input type="email" id="loginEmail" placeholder="電子郵件">
+  <input type="password" id="loginPassword" placeholder="密碼">
+  <button class="btn" id="loginBtn" style="width:100%;">登入</button>
+  <div id="loginError"></div>
+</div>
+
+<div id="appRoot">
+  <div class="toolbar" style="margin-bottom:2px;">
+    <h1 style="margin:0;">個人工作紀錄</h1>
+    <span class="topbar-user"><span class="syncdot" id="syncDot"></span><span id="userEmail"></span><button class="btn link" id="logoutBtn">登出</button></span>
+  </div>
+  <div class="subtitle" id="subtitle">載入中…</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabActive">進行中</button>
+    <button class="tab-btn" id="tabClosed">結案存查</button>
+  </div>
+
+  <div class="toolbar">
+    <select id="filterCat"></select>
+    <select id="filterStatus"></select>
+  </div>
+  <div class="toolbar" id="catManageRow">
+    <button class="btn ghost small" id="manageCatBtn">管理分類</button>
+  </div>
+
+  <div id="list"></div>
+  <button class="fab" id="addBtn">＋</button>
+</div>
+
+<div id="modalRoot"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, query, orderBy, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+// ============================================================
+// 請把下面換成你自己 Firebase 專案的設定（Firebase Console > 專案設定 > 一般 > 你的應用程式）
+// ============================================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let uid = null;
+let items = [];
+let categories = ['工作','個人'];
+let filterCat = 'all';
+let filterStatus = 'all';
+let activeTab = 'active';
+let expandedLogs = new Set();
+let unsubItems = null, unsubCats = null;
+
+const PRIO_ORDER = { high: 0, mid: 1, low: 2 };
+const PRIO_LABEL = { high: '高', mid: '中', low: '低' };
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${y}/${m}/${d}`; }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dueState(item){
+  if(item.status === 'closed') return 'closed';
+  if(item.status === 'hold') return 'hold';
+  if(!item.nextDate) return 'none';
+  const t = todayStr();
+  if(item.nextDate < t) return 'overdue';
+  if(item.nextDate === t) return 'today';
+  return 'future';
+}
+
+// ---------- Auth ----------
+document.getElementById('loginBtn').addEventListener('click', async ()=>{
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try{
+    await signInWithEmailAndPassword(auth, email, pw);
+  }catch(e){
+    errEl.textContent = '登入失敗：帳號或密碼錯誤';
+  }
+});
+document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
+
+onAuthStateChanged(auth, (user)=>{
+  if(unsubItems) unsubItems();
+  if(unsubCats) unsubCats();
+  if(user){
+    uid = user.uid;
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+    document.getElementById('userEmail').textContent = user.email;
+    subscribeData();
+  } else {
+    uid = null;
+    document.getElementById('loginScreen').style.display = 'block';
+    document.getElementById('appRoot').style.display = 'none';
+  }
+});
+
+// ---------- Firestore realtime subscriptions ----------
+function subscribeData(){
+  const itemsCol = collection(db, 'users', uid, 'items');
+  unsubItems = onSnapshot(itemsCol, (snap)=>{
+    items = [];
+    snap.forEach(d=> items.push({ id: d.id, ...d.data() }));
+    setSyncStatus(true);
+    render();
+  }, (err)=>{ console.error(err); setSyncStatus(false); });
+
+  const catsCol = collection(db, 'users', uid, 'categories');
+  unsubCats = onSnapshot(catsCol, (snap)=>{
+    if(snap.empty){
+      categories = ['工作','個人'];
+    } else {
+      categories = [];
+      snap.forEach(d=> categories.push(d.data().name));
+    }
+    render();
+  }, (err)=>{ console.error(err); setSyncStatus(false); });
+}
+function setSyncStatus(ok){
+  document.getElementById('syncDot').classList.toggle('off', !ok);
+}
+
+// ---------- Firestore writes ----------
+async function addItem(data){
+  await addDoc(collection(db, 'users', uid, 'items'), {
+    ...data, logs: [], status: 'active', createdAt: serverTimestamp()
+  });
+}
+async function updateItem(id, data){
+  await updateDoc(doc(db, 'users', uid, 'items', id), data);
+}
+async function deleteItemDb(id){
+  await deleteDoc(doc(db, 'users', uid, 'items', id));
+}
+async function addCategoryDb(name){
+  await addDoc(collection(db, 'users', uid, 'categories'), { name });
+}
+async function deleteCategoryDb(name){
+  // find the doc with this name
+  const catDocs = await import("https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js")
+    .then(({getDocs})=> getDocs(collection(db,'users',uid,'categories')));
+  for(const d of catDocs.docs){
+    if(d.data().name === name){ await deleteDoc(d.ref); }
+  }
+}
+
+// ---------- render (same UI logic as local version) ----------
+function statusLabel(item){
+  if(item.status === 'closed') return {text:'已結案', cls:'pill-closed'};
+  if(item.status === 'hold') return {text:'擱置', cls:'pill-hold'};
+  return {text:'進行中', cls:'pill-progress'};
+}
+function dueBadge(ds, item){
+  if(ds === 'closed') return item.closedDate ? {text:'結案於 '+fmtDate(item.closedDate), cls:'due-none'} : null;
+  if(ds === 'hold') return {text: item.nextDate ? '追蹤：'+fmtDate(item.nextDate) : '未設追蹤日', cls:'due-none'};
+  if(ds === 'overdue') return {text:'已逾期 · '+fmtDate(item.nextDate), cls:'due-overdue'};
+  if(ds === 'today') return {text:'今天到期', cls:'due-today'};
+  if(ds === 'future') return {text:'追蹤：'+fmtDate(item.nextDate), cls:'due-future'};
+  return {text:'未設追蹤日', cls:'due-none'};
+}
+function prioBadge(p){
+  const cls = p==='high' ? 'prio-high' : (p==='low' ? 'prio-low' : 'prio-mid');
+  return `<span class="prio-badge ${cls}">${PRIO_LABEL[p]||'中'}</span>`;
+}
+function passesFilter(item){
+  if(activeTab === 'closed') return item.status === 'closed' && (filterCat==='all' || item.category===filterCat);
+  if(item.status === 'closed') return false;
+  if(filterCat !== 'all' && item.category !== filterCat) return false;
+  if(filterStatus === 'all') return true;
+  const ds = dueState(item);
+  if(filterStatus === 'today') return ds === 'today';
+  if(filterStatus === 'overdue') return ds === 'overdue';
+  if(filterStatus === 'hold') return item.status === 'hold';
+  if(filterStatus === 'active_only') return item.status === 'active';
+  return true;
+}
+function sortItems(list){
+  if(activeTab === 'closed'){
+    return list.slice().sort((a,b)=> (b.closedDate||'').localeCompare(a.closedDate||''));
+  }
+  const rank = ds => ({overdue:0, today:1, future:2, hold:3, none:4}[ds] ?? 5);
+  return list.slice().sort((a,b)=>{
+    const da = dueState(a), db_ = dueState(b);
+    if(rank(da) !== rank(db_)) return rank(da)-rank(db_);
+    if(a.nextDate && b.nextDate) return a.nextDate < b.nextDate ? -1 : (a.nextDate > b.nextDate ? 1 : 0);
+    if(a.nextDate && !b.nextDate) return -1;
+    if(!a.nextDate && b.nextDate) return 1;
+    return 0;
+  });
+}
+function updateFilterStatusOptions(){
+  const sel = document.getElementById('filterStatus');
+  if(activeTab === 'closed'){ sel.style.display = 'none'; }
+  else {
+    sel.style.display = '';
+    sel.innerHTML = `<option value="all">全部狀態</option><option value="active_only">僅進行中</option><option value="today">今天到期</option><option value="overdue">已逾期</option><option value="hold">擱置</option>`;
+    sel.value = filterStatus;
+  }
+}
+function render(){
+  document.getElementById('subtitle').textContent = `共 ${items.length} 筆 · ${todayStr()}`;
+  document.getElementById('tabActive').classList.toggle('active', activeTab==='active');
+  document.getElementById('tabClosed').classList.toggle('active', activeTab==='closed');
+  document.getElementById('catManageRow').style.display = activeTab==='closed' ? 'none' : 'flex';
+  updateFilterStatusOptions();
+
+  const catSel = document.getElementById('filterCat');
+  catSel.innerHTML = '<option value="all">全部分類</option>' + categories.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  catSel.value = filterCat;
+
+  const list = document.getElementById('list');
+  const filtered = sortItems(items.filter(passesFilter));
+  if(filtered.length === 0){
+    list.innerHTML = activeTab === 'closed' ? `<div class="empty">尚無已結案項目。</div>` : `<div class="empty">目前沒有符合條件的項目。<br>按右下角「＋」新增一筆。</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(item=>{
+    const ds = dueState(item);
+    const badge = dueBadge(ds, item);
+    const st = statusLabel(item);
+    const allLogs = (item.logs||[]).slice().reverse();
+    const isExpanded = expandedLogs.has(item.id);
+    const visibleLogs = isExpanded ? allLogs : allLogs.slice(0,3);
+    const hiddenCount = allLogs.length - visibleLogs.length;
+    return `
+    <div class="card status-${ds}" data-id="${item.id}">
+      <div class="card-top">
+        <div class="title-wrap">${prioBadge(item.priority||'mid')}<div class="card-title">${escapeHtml(item.title)}</div></div>
+        ${badge ? `<span class="due-badge ${badge.cls}">${escapeHtml(badge.text)}</span>` : ''}
+      </div>
+      <div class="tag-row">
+        <span class="tag cat">${escapeHtml(item.category||'未分類')}</span>
+        <span class="tag">${item.type === 'event' ? '事件' : '工作'}</span>
+        <span class="status-pill ${st.cls}">${st.text}</span>
+      </div>
+      ${allLogs.length ? `<ul class="log-list">${visibleLogs.map(l=>`<li class="log-item"><span class="log-date">${fmtDate(l.date)}</span><span>${escapeHtml(l.text)}</span></li>`).join('')}</ul>
+      ${hiddenCount > 0 ? `<button class="btn link" data-action="toggle-log">展開其餘 ${hiddenCount} 筆較早紀錄 ▾</button>` : ''}
+      ${isExpanded && allLogs.length > 3 ? `<button class="btn link" data-action="collapse-log">收合 ▴</button>` : ''}` : ''}
+      ${item.status !== 'closed' ? `<div class="progress-input-row"><textarea placeholder="輸入本次進度…" data-role="progress-text" rows="1"></textarea><button class="btn small" data-action="add-log">記錄</button></div>` : ''}
+      <div class="row">
+        ${activeTab === 'active' ? `<button class="btn ghost small" data-action="edit">編輯</button>` : ''}
+        ${item.status === 'active' ? `<button class="btn ghost small" data-action="hold">擱置</button>` : ''}
+        ${item.status === 'hold' ? `<button class="btn ghost small" data-action="resume">恢復進行</button>` : ''}
+        ${item.status !== 'closed' ? `<button class="btn ghost small" data-action="close">結案（移至結案存查）</button>` : `<button class="btn ghost small" data-action="reopen">重新開啟至進行中</button>`}
+        <button class="btn ghost small" data-action="delete" style="color:var(--crimson);border-color:var(--crimson)">刪除</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.card').forEach(card=>{
+    const id = card.dataset.id;
+    card.querySelector('[data-action="add-log"]')?.addEventListener('click', ()=>addLog(id, card));
+    card.querySelector('[data-action="edit"]')?.addEventListener('click', ()=>openModal(items.find(i=>i.id===id)));
+    card.querySelector('[data-action="hold"]')?.addEventListener('click', ()=>setStatus(id,'hold'));
+    card.querySelector('[data-action="resume"]')?.addEventListener('click', ()=>setStatus(id,'active'));
+    card.querySelector('[data-action="close"]')?.addEventListener('click', ()=>setStatus(id,'closed'));
+    card.querySelector('[data-action="reopen"]')?.addEventListener('click', ()=>setStatus(id,'active'));
+    card.querySelector('[data-action="delete"]')?.addEventListener('click', ()=>deleteItemUi(id));
+    card.querySelector('[data-action="toggle-log"]')?.addEventListener('click', ()=>{ expandedLogs.add(id); render(); });
+    card.querySelector('[data-action="collapse-log"]')?.addEventListener('click', ()=>{ expandedLogs.delete(id); render(); });
+  });
+}
+
+async function addLog(id, card){
+  const ta = card.querySelector('[data-role="progress-text"]');
+  const text = ta.value.trim();
+  if(!text) return;
+  const item = items.find(i=>i.id===id);
+  if(!item) return;
+  const newLogs = (item.logs||[]).concat([{date: todayStr(), text}]);
+  await updateItem(id, { logs: newLogs });
+}
+async function setStatus(id, status){
+  const data = { status };
+  if(status === 'closed') data.closedDate = todayStr();
+  await updateItem(id, data);
+}
+async function deleteItemUi(id){
+  if(!confirm('確定要刪除這筆項目？此動作無法復原。')) return;
+  await deleteItemDb(id);
+}
+
+function openModal(existing){
+  const isEdit = !!existing;
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="modal-bg" id="modalBg"><div class="modal">
+    <h2>${isEdit ? '編輯項目' : '新增項目'}</h2>
+    <label class="field-label">標題</label>
+    <input type="text" id="fTitle" value="${isEdit ? escapeHtml(existing.title) : ''}" placeholder="例如：與 A 公司合約續約">
+    <label class="field-label">分類</label>
+    <select class="field" id="fCategory">${categories.map(c=>`<option value="${escapeHtml(c)}" ${isEdit && existing.category===c ? 'selected':''}>${escapeHtml(c)}</option>`).join('')}</select>
+    <label class="field-label">類型</label>
+    <div class="type-radio">
+      <label><input type="radio" name="fType" value="work" ${(!isEdit || existing.type==='work') ? 'checked':''}> 工作</label>
+      <label><input type="radio" name="fType" value="event" ${isEdit && existing.type==='event' ? 'checked':''}> 事件</label>
+    </div>
+    <label class="field-label">優先等級</label>
+    <div class="prio-radio">
+      <label><input type="radio" name="fPrio" value="high" ${isEdit && existing.priority==='high' ? 'checked':''}> 高</label>
+      <label><input type="radio" name="fPrio" value="mid" ${(!isEdit || !existing.priority || existing.priority==='mid') ? 'checked':''}> 中</label>
+      <label><input type="radio" name="fPrio" value="low" ${isEdit && existing.priority==='low' ? 'checked':''}> 低</label>
+    </div>
+    <label class="field-label">下次追蹤日</label>
+    <input type="date" id="fNextDate" value="${isEdit ? (existing.nextDate||'') : ''}">
+    <div class="row" style="margin-top:16px;">
+      <button class="btn" id="fSave">${isEdit ? '儲存' : '新增'}</button>
+      <button class="btn ghost" id="fCancel">取消</button>
+    </div>
+  </div></div>`;
+  document.getElementById('fCancel').onclick = ()=> root.innerHTML='';
+  document.getElementById('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg') root.innerHTML=''; });
+  document.getElementById('fSave').onclick = async ()=>{
+    const title = document.getElementById('fTitle').value.trim();
+    if(!title){ alert('請輸入標題'); return; }
+    const category = document.getElementById('fCategory').value;
+    const type = document.querySelector('input[name="fType"]:checked').value;
+    const priority = document.querySelector('input[name="fPrio"]:checked').value;
+    const nextDate = document.getElementById('fNextDate').value;
+    if(isEdit){ await updateItem(existing.id, { title, category, type, priority, nextDate }); }
+    else{ await addItem({ title, category, type, priority, nextDate }); }
+    root.innerHTML='';
+  };
+}
+function openCategoryModal(){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="modal-bg" id="catBg"><div class="modal">
+    <h2>管理分類</h2>
+    <div class="cat-manage" id="catChips"></div>
+    <label class="field-label">新增分類</label>
+    <div class="row"><input type="text" id="newCatInput" placeholder="輸入分類名稱"><button class="btn small" id="addCatBtn">新增</button></div>
+    <div class="row" style="margin-top:16px;"><button class="btn ghost" id="catCloseBtn">關閉</button></div>
+  </div></div>`;
+  function renderChips(){
+    document.getElementById('catChips').innerHTML = categories.map(c=>`<span class="cat-chip">${escapeHtml(c)}<button data-cat="${escapeHtml(c)}">×</button></span>`).join('');
+    document.querySelectorAll('#catChips button').forEach(b=>{
+      b.onclick = async ()=>{
+        const c = b.dataset.cat;
+        const inUse = items.some(i=>i.category===c);
+        if(inUse && !confirm(`分類「${c}」尚有項目使用中，刪除後這些項目分類將顯示為未分類，確定？`)) return;
+        await deleteCategoryDb(c);
+        for(const i of items){ if(i.category===c) await updateItem(i.id, {category:''}); }
+        renderChips();
+      };
+    });
+  }
+  renderChips();
+  document.getElementById('addCatBtn').onclick = async ()=>{
+    const input = document.getElementById('newCatInput');
+    const val = input.value.trim();
+    if(!val) return;
+    if(categories.includes(val)){ alert('這個分類已存在'); return; }
+    await addCategoryDb(val);
+    input.value='';
+    renderChips();
+  };
+  document.getElementById('catCloseBtn').onclick = ()=> root.innerHTML='';
+  document.getElementById('catBg').addEventListener('click', e=>{ if(e.target.id==='catBg') root.innerHTML=''; });
+}
+
+document.getElementById('addBtn').addEventListener('click', ()=>openModal(null));
+document.getElementById('manageCatBtn').addEventListener('click', openCategoryModal);
+document.getElementById('filterCat').addEventListener('change', e=>{ filterCat = e.target.value; render(); });
+document.getElementById('filterStatus').addEventListener('change', e=>{ filterStatus = e.target.value; render(); });
+document.getElementById('tabActive').addEventListener('click', ()=>{ activeTab='active'; filterStatus='all'; render(); });
+document.getElementById('tabClosed').addEventListener('click', ()=>{ activeTab='closed'; render(); });
+</script>
+</body>
+</html>
