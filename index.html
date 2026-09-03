@@ -6,17 +6,18 @@
 <title>個人工作紀錄</title>
 <style>
   :root{
-    --paper:#F6F4EE; --paper-line:#E4E0D4; --ink:#1F3B36; --ink-soft:#5B6B63;
-    --amber:#B8790A; --amber-bg:#FBEFD8; --crimson:#A5271E; --crimson-bg:#F8E3DF;
-    --sage:#5C7A5E; --sage-bg:#E7EEE3; --hold:#8A6D3B; --hold-bg:#F1E6D3;
-    --card:#FFFEFA; --shadow:0 1px 2px rgba(31,59,54,0.08), 0 4px 12px rgba(31,59,54,0.05);
+    --paper:#F7F5EF; --paper-line:#DCD6C6; --ink:#132521; --ink-soft:#3F5148;
+    --amber:#8A5200; --amber-bg:#FBE4B8; --crimson:#8A1F17; --crimson-bg:#F6D3CD;
+    --sage:#365A38; --sage-bg:#DDEBD9; --hold:#6B4F1E; --hold-bg:#EEDFBD;
+    --card:#FFFFFC; --shadow:0 1px 2px rgba(19,37,33,0.10), 0 4px 14px rgba(19,37,33,0.06);
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; font-family:"Iowan Old Style","Georgia","Noto Serif TC",serif;
-    background: linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 28px, var(--paper);
+    margin:0; font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+    background:#F4F2EC;
     color:var(--ink); padding:20px 14px 80px; min-height:100vh;
   }
+  #appRoot{ max-width:900px; margin:0 auto; }
   h1{ font-size:1.4rem; letter-spacing:0.02em; margin:0 0 2px; font-weight:700; }
   .subtitle{ font-size:0.78rem; color:var(--ink-soft); margin-bottom:14px; font-family:ui-monospace,"SF Mono",Menlo,monospace; }
   .tabs{ display:flex; gap:0; margin-bottom:14px; border-bottom:1px solid var(--paper-line); }
@@ -29,36 +30,31 @@
   .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--ink-soft); }
   .btn.small{ padding:3px 8px; font-size:0.68rem; border-radius:3px; }
   .btn.link{ background:none; border:none; color:var(--ink-soft); text-decoration:underline; padding:4px 0; font-size:0.74rem; cursor:pointer; }
+  .card-action{ background:none; color:var(--ink-soft); border:none; padding:0; font-weight:400; font-size:0.72rem; text-decoration:underline; text-underline-offset:2px; cursor:pointer; font-family:inherit; }
   select{ border:1px solid var(--ink-soft); border-radius:3px; padding:7px 8px; background:var(--card); color:var(--ink); }
-  .card{ background:var(--card); border:1px solid var(--paper-line); border-radius:5px; box-shadow:var(--shadow); padding:9px 10px 8px; margin-bottom:7px; border-left:3px solid var(--ink-soft); }
+  .card{ background:var(--card); border:1px solid var(--paper-line); border-radius:6px; box-shadow:var(--shadow); padding:13px 14px 11px; margin-bottom:10px; border-left:4px solid var(--ink-soft); }
   .card.status-overdue{ border-left-color:var(--crimson); }
   .card.status-today{ border-left-color:var(--amber); }
   .card.status-hold{ border-left-color:var(--hold); opacity:0.85; }
   .card.status-closed{ border-left-color:var(--sage); opacity:0.75; }
   .card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
-  .title-wrap{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-  .card-title{ font-size:0.9rem; font-weight:700; line-height:1.25; }
+  .title-wrap{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .card-title{ font-size:1.08rem; font-weight:700; line-height:1.3; }
   .card.status-closed .card-title{ text-decoration:line-through; }
-  .prio-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.6rem; font-weight:700; padding:2px 6px; border-radius:3px; flex-shrink:0; border:1px solid var(--ink); }
+  .prio-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.68rem; font-weight:700; padding:2px 7px; border-radius:3px; flex-shrink:0; border:1px solid var(--ink); }
   .prio-high{ background:var(--ink); color:var(--paper); }
   .prio-mid{ background:var(--paper); color:var(--ink); }
   .prio-low{ background:transparent; color:var(--ink-soft); border-color:var(--paper-line); }
-  .tag-row{ display:flex; gap:4px; flex-wrap:wrap; margin:4px 0 5px; font-family:ui-monospace,"SF Mono",Menlo,monospace; }
-  .tag{ font-size:0.62rem; padding:1px 6px; border-radius:99px; background:var(--paper); border:1px solid var(--paper-line); color:var(--ink-soft); }
-  .tag.cat{ border-color:var(--ink-soft); color:var(--ink); }
-  .due-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.64rem; font-weight:700; padding:2px 6px; border-radius:4px; white-space:nowrap; }
+  .cat-word{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.72rem; color:var(--ink-soft); flex-shrink:0; }
+  .due-badge{ font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:0.74rem; font-weight:700; padding:3px 9px; border-radius:4px; white-space:nowrap; }
   .due-overdue{ background:var(--crimson-bg); color:var(--crimson); }
   .due-today{ background:var(--amber-bg); color:var(--amber); }
   .due-future{ background:var(--paper); color:var(--ink-soft); border:1px solid var(--paper-line);}
   .due-none{ background:var(--paper); color:var(--ink-soft); }
-  .status-pill{ font-size:0.6rem; padding:2px 6px; border-radius:4px; font-weight:700; font-family:ui-monospace,monospace; }
-  .pill-progress{ background:var(--sage-bg); color:var(--sage); }
-  .pill-hold{ background:var(--hold-bg); color:var(--hold); }
-  .pill-closed{ background:#EAEAEA; color:#777; }
-  .log-list{ margin:5px 0 2px; padding-left:0; list-style:none; border-top:1px dashed var(--paper-line); padding-top:5px; }
-  .log-item{ font-size:0.76rem; margin-bottom:3px; display:flex; gap:6px; line-height:1.3; }
-  .log-date{ font-family:ui-monospace,"SF Mono",Menlo,monospace; color:var(--ink-soft); flex-shrink:0; font-size:0.68rem; }
-  .row{ display:flex; gap:5px; margin-top:6px; flex-wrap:wrap; }
+  .log-list{ margin:6px 0 4px; padding-left:0; list-style:none; border-top:1px dashed var(--paper-line); padding-top:6px; }
+  .log-item{ font-size:0.86rem; margin-bottom:4px; display:flex; gap:8px; line-height:1.4; }
+  .log-date{ font-family:ui-monospace,"SF Mono",Menlo,monospace; color:var(--ink-soft); flex-shrink:0; font-size:0.76rem; }
+  .row{ display:flex; gap:14px; margin-top:9px; flex-wrap:wrap; justify-content:flex-end; }
   input[type=text], input[type=date], input[type=email], input[type=password], textarea, select.field{
     border:1px solid var(--paper-line); border-radius:4px; padding:7px 9px; background:var(--paper); color:var(--ink); width:100%;
   }
@@ -136,12 +132,12 @@ import {
 // 請把下面換成你自己 Firebase 專案的設定（Firebase Console > 專案設定 > 一般 > 你的應用程式）
 // ============================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyAWSO2dG6r4CkyC0fhGoUjs-e3fBLZeAD0",
-  authDomain: "openissue-c2cbc.firebaseapp.com",
-  projectId: "openissue-c2cbc",
-  storageBucket: "openissue-c2cbc.firebasestorage.app",
-  messagingSenderId: "798967487322",
-  appId: "1:798967487322:web:63dd3eefcd3edef740b163"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -182,7 +178,8 @@ document.getElementById('loginBtn').addEventListener('click', async ()=>{
   try{
     await signInWithEmailAndPassword(auth, email, pw);
   }catch(e){
-    errEl.textContent = '登入失敗：帳號或密碼錯誤';
+    console.error('Firebase auth error:', e.code, e.message);
+    errEl.textContent = `登入失敗（${e.code || '未知錯誤'}）— 請按 F12 打開主控台看完整訊息`;
   }
 });
 document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
@@ -333,24 +330,19 @@ function render(){
     return `
     <div class="card status-${ds}" data-id="${item.id}">
       <div class="card-top">
-        <div class="title-wrap">${prioBadge(item.priority||'mid')}<div class="card-title">${escapeHtml(item.title)}</div></div>
+        <div class="title-wrap">${prioBadge(item.priority||'mid')}<span class="cat-word">${escapeHtml(item.category||'未分類')}</span><div class="card-title">${escapeHtml(item.title)}</div></div>
         ${badge ? `<span class="due-badge ${badge.cls}">${escapeHtml(badge.text)}</span>` : ''}
-      </div>
-      <div class="tag-row">
-        <span class="tag cat">${escapeHtml(item.category||'未分類')}</span>
-        <span class="tag">${item.type === 'event' ? '事件' : '工作'}</span>
-        <span class="status-pill ${st.cls}">${st.text}</span>
       </div>
       ${allLogs.length ? `<ul class="log-list">${visibleLogs.map(l=>`<li class="log-item"><span class="log-date">${fmtDate(l.date)}</span><span>${escapeHtml(l.text)}</span></li>`).join('')}</ul>
       ${hiddenCount > 0 ? `<button class="btn link" data-action="toggle-log">展開其餘 ${hiddenCount} 筆較早紀錄 ▾</button>` : ''}
       ${isExpanded && allLogs.length > 3 ? `<button class="btn link" data-action="collapse-log">收合 ▴</button>` : ''}` : ''}
       ${item.status !== 'closed' ? `<div class="progress-input-row"><textarea placeholder="輸入本次進度…" data-role="progress-text" rows="1"></textarea><button class="btn small" data-action="add-log">記錄</button></div>` : ''}
       <div class="row">
-        ${activeTab === 'active' ? `<button class="btn ghost small" data-action="edit">編輯</button>` : ''}
-        ${item.status === 'active' ? `<button class="btn ghost small" data-action="hold">擱置</button>` : ''}
-        ${item.status === 'hold' ? `<button class="btn ghost small" data-action="resume">恢復進行</button>` : ''}
-        ${item.status !== 'closed' ? `<button class="btn ghost small" data-action="close">結案（移至結案存查）</button>` : `<button class="btn ghost small" data-action="reopen">重新開啟至進行中</button>`}
-        <button class="btn ghost small" data-action="delete" style="color:var(--crimson);border-color:var(--crimson)">刪除</button>
+        ${activeTab === 'active' ? `<button class="card-action" data-action="edit">編輯</button>` : ''}
+        ${item.status === 'active' ? `<button class="card-action" data-action="hold">擱置</button>` : ''}
+        ${item.status === 'hold' ? `<button class="card-action" data-action="resume">恢復進行</button>` : ''}
+        ${item.status !== 'closed' ? `<button class="card-action" data-action="close">結案（移至結案存查）</button>` : `<button class="card-action" data-action="reopen">重新開啟至進行中</button>`}
+        <button class="card-action" data-action="delete" style="color:var(--crimson)">刪除</button>
       </div>
     </div>`;
   }).join('');
